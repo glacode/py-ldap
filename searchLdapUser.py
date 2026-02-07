@@ -18,12 +18,12 @@ LDAP_USE_SSL = os.getenv("LDAP_USE_SSL", "False").lower() in ("true", "1", "t")
 # Initialize Tkinter root and hide it while asking for password
 root = tk.Tk()
 root.withdraw()
+root.title("LDAP Search")
 
 LDAP_PASSWORD = simpledialog.askstring("LDAP Login", "Enter LDAP password:", show='*')
-
-# Show root window again
-root.deiconify()
-root.title("LDAP Search")
+if LDAP_PASSWORD is None:
+    root.destroy()
+    exit(0)
 
 try:
     ciphers='ALL'
@@ -114,22 +114,39 @@ def on_search():
         display_name = f"{getattr(entry, 'cn', entry.sn)} ({getattr(entry, 'uid', '')})"
         listbox.insert(tk.END, display_name)
 
-tk.Label(root, text="First Name:").grid(row=0, column=0)
-firstname_entry = tk.Entry(root)
-firstname_entry.grid(row=0, column=1)
+# Create a frame to center the search form
+search_frame = tk.Frame(root)
+search_frame.grid(row=0, column=0, columnspan=2, pady=10, sticky="n")
 
-tk.Label(root, text="Last Name:").grid(row=1, column=0)
-lastname_entry = tk.Entry(root)
-lastname_entry.grid(row=1, column=1)
+tk.Label(search_frame, text="First Name:").grid(row=0, column=0, sticky="e", padx=5, pady=2)
+firstname_entry = tk.Entry(search_frame)
+firstname_entry.grid(row=0, column=1, padx=5, pady=2)
 
-tk.Button(root, text="Search", command=on_search).grid(row=2, columnspan=2)
+tk.Label(search_frame, text="Last Name:").grid(row=1, column=0, sticky="e", padx=5, pady=2)
+lastname_entry = tk.Entry(search_frame)
+lastname_entry.grid(row=1, column=1, padx=5, pady=2)
+
+tk.Button(search_frame, text="Search", command=on_search).grid(row=2, columnspan=2, pady=10)
 
 listbox = tk.Listbox(root)
-listbox.grid(row=3, columnspan=2, sticky="nsew")
+listbox.grid(row=3, columnspan=2, sticky="nsew", padx=10)
 listbox.bind("<Double-Button-1>", on_select)
 
 text_area = tk.Text(root, height=5, width=50)
-text_area.grid(row=4, columnspan=2)
+text_area.grid(row=4, columnspan=2, padx=10, pady=10)
+
+# Configure weights to ensure centering
+root.grid_columnconfigure(0, weight=1)
+root.grid_columnconfigure(1, weight=1)
+
+# Center the window on the screen
+root.update_idletasks()
+width = root.winfo_width()
+height = root.winfo_height()
+x = (root.winfo_screenwidth() // 2) - (width // 2)
+y = (root.winfo_screenheight() // 2) - (height // 2)
+root.geometry(f'{width}x{height}+{x}+{y}')
+root.deiconify()
 
 try:
     root.mainloop()
